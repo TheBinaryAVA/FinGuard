@@ -1,0 +1,6 @@
+# Copy this file to db.properties for local development.
+db.host=localhost
+db.port=3306
+db.name=finguard
+db.user=root
+db.password=

@@ -1,0 +1,12 @@
+*.class
+out/
+bin/
+target/
+.idea/
+data/
+logs/
+*.log
+*.bin
+database/*.credentials
+database/*.properties
+config/db.properties

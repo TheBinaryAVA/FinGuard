@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FinGuard Risk Console</title>
+  <style>
+    :root { color-scheme: dark; font-family: Georgia, serif; background: #101820; color: #f4f1ea; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; background: radial-gradient(circle at 15% 0, #25434b, transparent 38%), #101820; }
+    main { max-width: 1180px; margin: auto; padding: 42px 24px; }
+    .eyebrow { color: #83d0c5; letter-spacing: .15em; text-transform: uppercase; font: 700 12px Arial, sans-serif; }
+    h1 { max-width: 700px; margin: 12px 0 10px; font-size: clamp(34px, 6vw, 68px); line-height: .95; }
+    p { color: #b7c4c7; font: 16px Arial, sans-serif; }
+    .bar { display: flex; justify-content: space-between; border-bottom: 1px solid #385057; padding: 18px 0; margin-bottom: 22px; font: 14px Arial, sans-serif; }
+    .status { color: #83d0c5; }
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 24px 0; }
+    .stat, section { border: 1px solid #385057; background: #17262c; padding: 18px; border-radius: 6px; }
+    .stat { font: 14px Arial, sans-serif; }
+    .stat strong { display: block; font: 30px Georgia, serif; margin-top: 8px; }
+    section { margin-top: 14px; font: 13px Arial, sans-serif; }
+    h2 { font: 700 16px Arial, sans-serif; margin: 0 0 14px; }
+    .row { display: grid; grid-template-columns: 1fr 110px 100px 100px; gap: 12px; padding: 12px 0; border-top: 1px solid #30434a; }
+    .tag { font-weight: 700; } .BLOCK { color: #ff958e; } .REVIEW { color: #ffd37d; } .ALLOW { color: #83d0c5; }
+    @media (max-width: 720px) { main { padding: 28px 14px; } .grid { grid-template-columns: 1fr; } .row { grid-template-columns: 1fr 80px 80px; } .row span:last-child { grid-column: 1 / -1; } }
+  </style>
+</head>
+<body><main>
+  <div class="eyebrow">FinGuard / live risk console</div>
+  <h1>Decisions with context.</h1>
+  <p>Deterministic fraud and account takeover signals, correlated in bounded time windows.</p>
+  <div class="bar"><span>System status</span><strong id="status" class="status">Connecting...</strong></div>
+  <div class="grid"><div class="stat">Queue depth<strong id="queue">-</strong></div><div class="stat">Risk results<strong id="resultCount">-</strong></div><div class="stat">Alerts<strong id="alertCount">-</strong></div></div>
+  <section><h2>Recent risk results</h2><div id="results">Loading...</div></section>
+  <section><h2>Alerts</h2><div id="alerts">Loading...</div></section>
+</main><script>
+const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+async function refresh() { try { const [health, risks, alerts] = await Promise.all(['/api/health','/api/results','/api/alerts'].map(path => fetch(path).then(response => response.json()))); status.textContent = health.status; queue.textContent = health.queueSize; resultCount.textContent = risks.length; alertCount.textContent = alerts.length; results.innerHTML = risks.slice(-12).reverse().map(result => `<div class="row"><span>${esc(result.eventId)}</span><span>${result.score}</span><span>${esc(result.level)}</span><span class="tag ${result.decision}">${esc(result.decision)}</span></div>`).join('') || 'No results'; alerts.innerHTML = alerts.slice(-8).reverse().map(alert => `<div class="row"><span>${esc(alert.eventId)}</span><span>${alert.result.score}</span><span>${esc(alert.result.level)}</span><span class="tag ${alert.result.decision}">${esc(alert.result.decision)}</span></div>`).join('') || 'No alerts'; } catch (error) { status.textContent = 'Unavailable'; } }
+refresh(); setInterval(refresh, 3000);
+</script></body></html>
